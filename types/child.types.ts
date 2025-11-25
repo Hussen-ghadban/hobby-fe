@@ -3,6 +3,8 @@ export interface Child {
   name: string;
   color: string;
   parentId: string;
+  createdAt: string;
+  bundleAssignmentId: string;
 }
 
 export interface AddChildFormData {
