@@ -31,6 +31,20 @@ TemplateChild: {
   update: "/templateChild/update",
   delete: "/templateChild/delete", 
 },
+ChildTaskBundle: {
+  add: "/childTaskBundle/add",
+  getAll: "/childTaskBundle/get",
+  getById: "/childTaskBundle/get",
+  update: "/childTaskBundle/update",
+  delete: "/childTaskBundle/delete", 
+},
+ChildBundleAssignment: {
+  add: "/childBundleAssignment/add",
+  getAll: "/childBundleAssignment/get",
+  getById: "/childBundleAssignment/get",
+  update: "/childBundleAssignment/update",
+  delete: "/childBundleAssignment/delete", 
+},
 TaskInstance: {
     add: "/taskInstance/add",
     getAll: "/taskInstance/get",
