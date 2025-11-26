@@ -15,6 +15,7 @@ import {
   FlatList,
   Pressable,
   Text,
+  TextInput,
   View,
   ScrollView,
   KeyboardAvoidingView,
@@ -39,6 +40,7 @@ export default function ChildTaskBundleManager() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const [form, setForm] = useState<AddChildTaskBundleFormData>({
+    name: "",
     templateIds: [],
   });
 
@@ -106,7 +108,7 @@ export default function ChildTaskBundleManager() {
     if (editingBundle) {
       updateBundleMutation.mutate({
         id: editingBundle.id,
-        data: { templateIds: form.templateIds },
+        data: { name: form.name, templateIds: form.templateIds },
       });
     } else {
       addBundleMutation.mutate(form);
@@ -122,19 +124,20 @@ export default function ChildTaskBundleManager() {
 
   const openModal = () => {
     setEditingBundle(null);
-    setForm({ templateIds: [] });
+    setForm({ name: "", templateIds: [] });
     setModalVisible(true);
   };
 
   const closeModal = () => {
     setModalVisible(false);
     setEditingBundle(null);
-    setForm({ templateIds: [] });
+    setForm({ name: "", templateIds: [] });
   };
 
   const handleEdit = (bundle: ChildTaskBundle) => {
     setEditingBundle(bundle);
     setForm({
+      name: bundle.name || "",
       templateIds: bundle.templates.map((t) => t.id),
     });
     setModalVisible(true);
@@ -144,6 +147,7 @@ export default function ChildTaskBundleManager() {
     setForm((prev) => {
       const exists = prev.templateIds.includes(id);
       return {
+        ...prev,
         templateIds: exists
           ? prev.templateIds.filter((x) => x !== id)
           : [...prev.templateIds, id],
@@ -171,7 +175,7 @@ export default function ChildTaskBundleManager() {
     >
       <View className="flex-row justify-between items-center mb-2">
         <Text className={`text-xl font-semibold ${theme.cardNameColor}`}>
-          Bundle #{index + 1}
+          {item.name}
         </Text>
 
         <View className="flex-row">
@@ -289,6 +293,17 @@ export default function ChildTaskBundleManager() {
             </View>
 
             <ScrollView className="px-6" showsVerticalScrollIndicator={false}>
+              <View className="mb-4">
+                <Text className={`text-sm font-medium ${theme.labelColor} mb-2`}>Bundle Name</Text>
+                <TextInput
+                  placeholder="Bundle name"
+                  placeholderTextColor="#9ca3af"
+                  className={`border ${theme.inputBorderColor} p-4 rounded-lg ${theme.inputBgColor} ${theme.inputTextColor}`}
+                  value={form.name}
+                  onChangeText={(t) => setForm((prev) => ({ ...prev, name: t }))}
+                />
+              </View>
+
               <Text className={`text-sm font-medium ${theme.labelColor} mb-2`}>
                 Task Templates
               </Text>
