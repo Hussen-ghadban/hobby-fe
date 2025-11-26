@@ -343,54 +343,6 @@ export default function ChildBundleAssignmentManager() {
             </View>
 
             <ScrollView className="px-6" showsVerticalScrollIndicator={false}>
-              {/* Bundle dropdown */}
-              <Text className={`text-sm font-medium ${theme.labelColor} mb-1`}>Bundle</Text>
-
-              <Pressable
-                onPress={() => setBundleDropdownOpen((v) => !v)}
-                className={`px-4 py-3 rounded-2xl border ${theme.inputBorderColor} ${theme.inputBgColor} flex-row items-center justify-between`}
-              >
-                <Text className={theme.inputTextColor}>
-                  {form.bundleId
-                    ? (bundles.find((b: any) => b.id === form.bundleId)?.id ?? form.bundleId)
-                    : "Select a bundle"}
-                </Text>
-                <Ionicons 
-                  name={bundleDropdownOpen ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={isDark ? "#9ca3af" : "#6b7280"} 
-                />
-              </Pressable>
-
-              {bundleDropdownOpen && (
-                <View 
-                  className={`mt-2 rounded-xl border ${theme.inputBorderColor} ${theme.inputBgColor} p-2`} 
-                  style={{ maxHeight: 220 }}
-                >
-                  <ScrollView>
-                    {bundles.length === 0 ? (
-                      <Text className={`text-sm ${theme.subTextColor} p-3`}>No bundles found</Text>
-                    ) : (
-                      bundles.map((b: any) => (
-                        <Pressable
-                          key={b.id}
-                          onPress={() => {
-                            setForm((prev) => ({ ...prev, bundleId: b.id }));
-                            setBundleDropdownOpen(false);
-                          }}
-                          className="px-3 py-3"
-                        >
-                          <Text className={`font-medium ${theme.cardNameColor}`}>Bundle: {b.id}</Text>
-                          {b.templates && b.templates.length !== undefined && (
-                            <Text className={`text-xs mt-1 ${theme.subTextColor}`}>{b.templates.length} template(s)</Text>
-                          )}
-                        </Pressable>
-                      ))
-                    )}
-                  </ScrollView>
-                </View>
-              )}
-
               {/* Children multi-select */}
               <Text className={`text-sm font-medium mt-5 mb-2 ${theme.labelColor}`}>Select Children</Text>
 
