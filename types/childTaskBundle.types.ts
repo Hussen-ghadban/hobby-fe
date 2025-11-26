@@ -15,11 +15,13 @@ export interface TaskTemplate {
 
 // --- Create ChildTaskBundle (body: templateIds[]) ---
 export interface AddChildTaskBundleFormData {
+  name: string;
   templateIds: string[];
 }
 
 // --- Update ChildTaskBundle (body: templateIds[]) ---
 export interface UpdateChildTaskBundleFormData {
+  name?: string;
   templateIds: string[];
 }
 

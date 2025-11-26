@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, BackHandler, FlatList, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import Modal from "react-native-modal";
 import { useSelector } from "react-redux";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const RECURRENCE_OPTIONS = [
   { label: "Daily", value: "DAILY" },
@@ -36,8 +37,7 @@ export default function TaskTemplatesManager() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
   
-  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
-  const [loading, setLoading] = useState(false);
+  
   const [modalVisible, setModalVisible] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 
@@ -54,24 +54,43 @@ export default function TaskTemplatesManager() {
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
- 
-  // Fetch templates
-  const fetchTemplates = async () => {
-    try {
-      setLoading(true);
-      const res = await getAllTaskTemplatesService(token!);
-      setTemplates(res.data);
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Failed to fetch task templates");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ["taskTemplates"],
+    queryFn: async () => {
+      const res = await getAllTaskTemplatesService(token!);
+      return res.data as TaskTemplate[];
+    },
+    enabled: !!token,
+  });
+
+ 
+  // Mutations (add / update / delete)
+  const addMutation = useMutation({
+    mutationFn: (payload: any) => addTaskTemplateService(payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["taskTemplates"] });
+      closeModal();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any }) => updateTaskTemplateService(id, payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["taskTemplates"] });
+      closeModal();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteTaskTemplateService(id, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["taskTemplates"] });
+    },
+  });
+
+  const isMutating = addMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   // Handle Android back button
   useEffect(() => {
@@ -99,7 +118,6 @@ export default function TaskTemplatesManager() {
     }
 
     try {
-      setLoading(true);
       const payload: any = {
         name: form.name,
         description: form.description,
@@ -114,17 +132,13 @@ export default function TaskTemplatesManager() {
       }
 
       if (editingTemplate) {
-        await updateTaskTemplateService(editingTemplate.id, payload, token!);
+        updateMutation.mutate({ id: editingTemplate.id, payload });
       } else {
-        await addTaskTemplateService(payload, token!);
+        addMutation.mutate(payload);
       }
-      closeModal();
-      fetchTemplates();
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "Failed to save task template");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -152,14 +166,10 @@ export default function TaskTemplatesManager() {
         style: "destructive",
         onPress: async () => {
           try {
-            setLoading(true);
-            await deleteTaskTemplateService(id, token!);
-            fetchTemplates();
+            deleteMutation.mutate(id);
           } catch (err) {
             console.error(err);
             Alert.alert("Error", "Failed to delete task template");
-          } finally {
-            setLoading(false);
           }
         },
       },
@@ -238,7 +248,7 @@ export default function TaskTemplatesManager() {
       {/* Content */}
       <View className="flex-1 px-6 pt-4">
         {/* Loading State */}
-        {loading && templates.length === 0 && (
+        {isLoading && templates.length === 0 && (
   <FlatList
     data={[1, 2, 3, 4, 5]}
     keyExtractor={(i) => i.toString()}
@@ -249,7 +259,7 @@ export default function TaskTemplatesManager() {
 
 
         {/* Empty State */}
-        {!loading && templates.length === 0 && (
+        {!isLoading && templates.length === 0 && (
           <View className="flex-1 justify-center items-center px-8">
             <View className={`w-20 h-20 ${theme.emptyIconBgColor} rounded-full items-center justify-center mb-4`}>
               <Text className="text-4xl">📋</Text>
@@ -623,9 +633,9 @@ export default function TaskTemplatesManager() {
               <Pressable
                 className={`${isDark ? "bg-white" : "bg-gray-900"} py-4 rounded-lg items-center`}
                 onPress={handleSave}
-                disabled={loading}
+                disabled={isMutating}
               >
-                {loading ? (
+                {isMutating ? (
                   <ActivityIndicator color={isDark ? "#111827" : "white"} />
                 ) : (
                   <Text className={`font-semibold ${isDark ? "text-gray-900" : "text-white"}`}>
@@ -637,7 +647,7 @@ export default function TaskTemplatesManager() {
               <Pressable
                 className={`${isDark ? "bg-gray-700" : "bg-gray-200"} py-4 rounded-lg items-center`}
                 onPress={closeModal}
-                disabled={loading}
+                disabled={isMutating}
               >
                 <Text className={`font-semibold ${theme.headerTextColor}`}>
                   Cancel
