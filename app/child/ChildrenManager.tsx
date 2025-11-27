@@ -192,44 +192,39 @@ export default function ChildrenManager() {
       <Text className={`text-sm ${theme.subTextColor}`}>Add one to get started</Text>
     </Animated.View>
   );
+  const renderHeader = () => (
+    <View className={`${theme.headerBgColor} px-6 pt-12 pb-4 mb-6 border-b ${theme.headerBorderColor}`}>
+      <View className="flex-row justify-between items-center">
+        <View>
+          <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Children</Text>
+          <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
+            Manage your children profiles
+          </Text>
+        </View>
+
+        <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
+          <Text className={`${theme.countTextColor} font-semibold`}>{children.length}</Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View className={`flex-1 ${theme.bgColor}`}>
-      {/* Header */}
-      <View className={`${theme.headerBgColor} px-6 pt-16 pb-6 border-b ${theme.headerBorderColor}`}>
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Children</Text>
-            <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
-              Manage your children profiles
-            </Text>
-          </View>
-
-          <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
-            <Text className={`${theme.countTextColor} font-semibold`}>
-              {children.length}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* List */}
-      {isLoading ? (
-        <FlatList
-          data={[1, 2, 3]}
-          renderItem={({ index }) => <ChildrenManagerSkeleton index={index} />}
-          keyExtractor={(i) => i.toString()}
-          contentContainerStyle={{ paddingTop: 16 }}
-        />
-      ) : (
-        <FlatList
-          data={children}
-          keyExtractor={(i) => i.id}
-          renderItem={renderChildItem}
-          contentContainerStyle={{ paddingBottom: 90, paddingTop: 16 }}
-          ListEmptyComponent={ListEmptyComponent}
-        />
-      )}
+      <FlatList
+        data={isLoading && children.length === 0 ? [1, 2, 3] : children}
+        keyExtractor={(item, index) => (typeof item === "number" ? `skeleton-${item}-${index}` : item.id)}
+        renderItem={({ item, index }) => {
+          if (isLoading && children.length === 0) {
+            return <ChildrenManagerSkeleton index={index} />;
+          }
+          return renderChildItem({ item: item as Child, index });
+        }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={() => (!isLoading ? ListEmptyComponent : null)}
+        contentContainerStyle={{ paddingBottom: 90, paddingTop: 0 }}
+        showsVerticalScrollIndicator={false}
+      />
 
       {/* Floating Add Button */}
       <Pressable
