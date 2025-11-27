@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { RegisterFormData } from "@/types/auth.types";
 import { registerService } from "@/services/auth.service";
@@ -36,9 +37,14 @@ export default function RegisterScreen() {
       setError("");
 
       await registerService(form);
-      router.replace("/auth/login");
-    } catch {
+      
+      // Navigate after a small delay to ensure state is settled
+      setTimeout(() => {
+        router.replace("/auth/login");
+      }, 100);
+    } catch (err) {
       setError("Registration failed. Please try again.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -47,84 +53,100 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       className="flex-1"
     >
-      <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-        >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-1 bg-gray-50 dark:bg-gray-900">
           <View className="flex-1 px-6 justify-center py-12">
             {/* Header */}
-            <View className="items-center mb-8">
+            <View className="items-center mb-10">
+              <View className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 items-center justify-center mb-4">
+                <Ionicons name="person-add" size={32} color="#3b82f6" />
+              </View>
               <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Create Account
               </Text>
-              <Text className="text-sm text-gray-600 dark:text-gray-400">
-                Fill in your details to get started
+              <Text className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                Join us and get started
               </Text>
             </View>
 
             {/* Form Card */}
-            <View className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6">
+            <View className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 shadow-sm">
               {/* Name */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <View className="mb-5">
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Full Name
                 </Text>
-                <TextInput
-                  placeholder="Enter your full name"
-                  placeholderTextColor="#9ca3af"
-                  className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-gray-900 dark:text-white"
-                  value={form.name}
-                  onChangeText={(t) => setForm({ ...form, name: t })}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                />
+                <View className="flex-row items-center border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                  <Ionicons name="person" size={18} color="#9ca3af" className="ml-3" />
+                  <TextInput
+                    placeholder="Enter your full name"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 px-4 py-3 text-gray-900 dark:text-white"
+                    value={form.name}
+                    onChangeText={(t) => setForm({ ...form, name: t })}
+                    autoCapitalize="words"
+                    autoComplete="name"
+                  />
+                </View>
               </View>
 
               {/* Email */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <View className="mb-5">
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Email
                 </Text>
-                <TextInput
-                  placeholder="Enter your email"
-                  placeholderTextColor="#9ca3af"
-                  className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-gray-900 dark:text-white"
-                  value={form.email}
-                  onChangeText={(t) => setForm({ ...form, email: t })}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                />
+                <View className="flex-row items-center border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                  <Ionicons name="mail" size={18} color="#9ca3af" className="ml-3" />
+                  <TextInput
+                    placeholder="Enter your email"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 px-4 py-3 text-gray-900 dark:text-white"
+                    value={form.email}
+                    onChangeText={(t) => setForm({ ...form, email: t })}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
               </View>
 
               {/* Password */}
               <View className="mb-5">
-                <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Password
                 </Text>
                 <View className="relative">
+                  <View className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                    <Ionicons name="lock-closed" size={20} color="#9ca3af" />
+                  </View>
                   <TextInput
                     placeholder="Create a password"
                     placeholderTextColor="#9ca3af"
                     secureTextEntry={!showPassword}
-                    className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 pr-12 text-gray-900 dark:text-white"
+                    className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 pl-12 pr-12 text-gray-900 dark:text-white"
                     value={form.password}
                     onChangeText={(t) => setForm({ ...form, password: t })}
                     autoCapitalize="none"
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-1"
                   >
-                    <Text className="text-base">
-                      {showPassword ? "🙈" : "👁️"}
-                    </Text>
+                    <Ionicons
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={20}
+                      color="#9ca3af"
+                    />
                   </Pressable>
                 </View>
-                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   Must be at least 8 characters
                 </Text>
               </View>
@@ -201,9 +223,12 @@ export default function RegisterScreen() {
                 </Link>
               </View>
             </View>
+            
+            {/* Extra space at bottom for keyboard */}
+            <View className="h-40" />
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
