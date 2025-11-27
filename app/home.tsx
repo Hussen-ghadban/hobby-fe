@@ -13,16 +13,25 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// The padding used around the screen content (px-6 -> 6*4=24, so total 48)
+const HORIZONTAL_PADDING = 48; 
+// The gap between cards (gap-4 -> 4*4=16)
+const CARD_GAP = 16;
+// Number of cards to show per row
+const CARDS_PER_ROW = 2; 
+
 export default function HomeScreen() {
   const { isDark, toggleTheme } = useTheme();
   const theme = getTheme(isDark);
   const { width: screenWidth } = useWindowDimensions();
 
-  // Calculate card width for flexible layout
-  const padding = 48; // 24px on each side (px-6 = 6 * 4 = 24)
-  const gap = 16;
-  const cardsPerRow = 2; // Change this to 1, 2, or 3 for different layouts
-  const cardWidth = (screenWidth - padding - gap * (cardsPerRow - 1)) / cardsPerRow;
+  // 1. Calculate the card width for a responsive 2-column layout
+  // (screenWidth - total_padding - total_gap) / CARDS_PER_ROW
+  const availableWidth = screenWidth - HORIZONTAL_PADDING - (CARD_GAP * (CARDS_PER_ROW - 1));
+  const cardWidth = availableWidth / CARDS_PER_ROW;
+  
+  // Guard against very small screens if needed, though flex-wrap handles this well
+  const finalCardWidth = Math.max(cardWidth, 150); // Ensure a minimum width
 
   const menuItems = [
     {
@@ -65,6 +74,15 @@ export default function HomeScreen() {
       color: "#ec4899",
       bgColor: "rgba(236, 72, 153, 0.1)",
     },
+    {
+      title: "Settings",
+      description: "App configuration",
+      href: "/settings",
+      iconName: "cog-outline" as const,
+      color: "#06b6d4",
+      bgColor: "rgba(6, 182, 212, 0.1)",
+    },
+    
   ] as const;
 
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -75,78 +93,76 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className={`flex-1 ${theme.bgColor}`}>
-      
-      {/* Header (fixed) */}
-      <View className="px-6 pt-2 flex-row justify-end items-center">
-        <Pressable
-          onPress={toggleTheme}
-          className={`h-10 w-10 rounded-full items-center justify-center border ${
-            isDark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
-          }`}
-        >
-          <MaterialCommunityIcons
-            name={isDark ? "weather-sunny" : "weather-night"}
-            size={20}
-            color={isDark ? "#fbbf24" : "#475569"}
-          />
-        </Pressable>
-      </View>
-
-      {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Hero */}
-        <View className="px-6 mt-4">
-          <Text
-            className={`text-xs font-medium uppercase tracking-wider mb-1 ${
-              isDark ? "text-slate-400" : "text-slate-500"
+        {/* Hero & Header */}
+        <View className="px-6 pt-2 mb-4 flex-row justify-between items-start">
+          <View className="flex-shrink max-w-[70%]">
+            <Text
+              className={`text-xs font-medium uppercase tracking-wider mb-1 ${
+                isDark ? "text-slate-400" : "text-slate-500"
+              }`}
+            >
+              {currentDate}
+            </Text>
+
+            <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>
+              Hello, Parent
+            </Text>
+
+            <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
+              Manage your family&apos;s tasks
+            </Text>
+          </View>
+          
+          {/* Theme Toggle Button */}
+          <Pressable
+            onPress={toggleTheme}
+            className={`h-11 w-11 rounded-full items-center justify-center border-2 ${
+              isDark ? "bg-slate-700 border-slate-600" : "bg-white border-gray-100"
             }`}
           >
-            {currentDate}
-          </Text>
-
-          <Text className={`text-2xl font-bold ${theme.headerTextColor}`}>
-            Hello, Parent
-          </Text>
-
-          <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
-            Manage your family&apos;s tasks
-          </Text>
+            <MaterialCommunityIcons
+              name={isDark ? "weather-sunny" : "weather-night"}
+              size={22}
+              color={isDark ? "#facc15" : "#475569"}
+            />
+          </Pressable>
         </View>
 
-        {/* Grid - Flexible Cards */}
-        <View className="px-6 mt-4">
-          <View
-            className="flex-row flex-wrap"
-            style={{ gap: 16 }}
-          >
+        {/* Grid - Responsive Cards */}
+        <View className="px-6 mt-2">
+          <View className="flex-row flex-wrap justify-between gap-4">
             {menuItems.map((item, idx) => (
               <Link key={idx} href={item.href as Href} asChild>
                 <Pressable
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.9 : 1,
                     transform: [{ scale: pressed ? 0.98 : 1 }],
-                    width: cardWidth,
+                    width: finalCardWidth,
                   })}
                 >
                   <View
-                    className={`rounded-3xl p-4 justify-between ${
-                      isDark ? "bg-slate-800" : "bg-white"
+                    className={`rounded-xl p-4 border-2 ${
+                      isDark 
+                        ? "bg-slate-800 border-slate-700" 
+                        : "bg-white border-gray-100"
                     }`}
                     style={{
                       height: 140,
-                      shadowColor: isDark ? "#000" : "#94a3b8",
+                      width: finalCardWidth,
+                      shadowColor: isDark ? "#000" : "#000",
                       shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: isDark ? 0.3 : 0.1,
-                      shadowRadius: 12,
+                      shadowOpacity: isDark ? 0.4 : 0.05,
+                      shadowRadius: 10,
                       elevation: 5,
                     }}
                   >
                     <View className="flex-row justify-between items-start">
                       <View
-                        className="h-11 w-11 rounded-2xl items-center justify-center"
+                        className="h-11 w-11 rounded-xl items-center justify-center"
                         style={{ backgroundColor: item.bgColor }}
                       >
                         <MaterialCommunityIcons
@@ -159,19 +175,19 @@ export default function HomeScreen() {
                       <MaterialCommunityIcons
                         name="arrow-top-right"
                         size={18}
-                        color={isDark ? "#64748b" : "#cbd5e1"}
+                        color={isDark ? "#64748b" : "#94a3b8"}
                       />
                     </View>
 
                     <View>
                       <Text
-                        className={`text-base font-bold mb-0.5 ${theme.cardNameColor}`}
+                        className={`text-lg font-extrabold mb-0.5 ${theme.cardNameColor}`}
                         numberOfLines={1}
                       >
                         {item.title}
                       </Text>
                       <Text
-                        className={`text-xs ${
+                        className={`text-sm ${
                           isDark ? "text-slate-400" : "text-slate-500"
                         }`}
                         numberOfLines={1}
@@ -183,23 +199,29 @@ export default function HomeScreen() {
                 </Pressable>
               </Link>
             ))}
+            {/* Filler view for proper alignment with odd number of items */}
+            {menuItems.length % CARDS_PER_ROW !== 0 && (
+              <View style={{ width: finalCardWidth, height: 0 }} />
+            )}
           </View>
         </View>
 
         {/* Footer */}
-        <View className="px-6 mt-6">
+        <View className="px-6 mt-8">
           <View
-            className={`p-3 rounded-2xl ${
-              isDark ? "bg-slate-800/50" : "bg-slate-100"
+            className={`p-4 rounded-xl border-2 ${ 
+              isDark 
+                ? "bg-slate-800/50 border-slate-700" 
+                : "bg-slate-100 border-gray-200"
             }`}
           >
-            <Text className={`text-center text-sm font-medium mb-3 ${theme.subTextColor}`}>
+            <Text className={`text-center text-base font-semibold mb-3 ${theme.subTextColor}`}>
               Account Management
             </Text>
             <LogoutButton />
           </View>
 
-          <Text className="text-center text-xs text-slate-400 mt-3">
+          <Text className="text-center text-xs text-slate-400 mt-4">
             Family Task Manager v1.0
           </Text>
         </View>

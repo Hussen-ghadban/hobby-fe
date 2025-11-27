@@ -4,13 +4,12 @@ import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "@/redux/store/store";
 import { RootState } from "@/redux/store/rootReducer";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { StatusBar, Platform } from "react-native";
 import "../global.css";
 
-// ⬇️ TanStack Query Setup
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Create a single query client instance
 const queryClient = new QueryClient();
 
 function MainLayout() {
@@ -18,6 +17,20 @@ function MainLayout() {
   const segments = useSegments();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [isReady, setIsReady] = useState(false);
+  const { isDark } = useTheme();
+
+  // Configure StatusBar based on theme
+  useEffect(() => {
+    const barStyle = isDark ? 'light-content' : 'dark-content';
+    const backgroundColor = isDark ? '#000000' : '#ffffff';
+
+    StatusBar.setBarStyle(barStyle, true);
+    
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(backgroundColor);
+      StatusBar.setTranslucent(false);
+    }
+  }, [isDark]);
 
   useEffect(() => {
     if (!isReady) return;
