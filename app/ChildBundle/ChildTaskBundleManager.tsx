@@ -209,44 +209,39 @@ export default function ChildTaskBundleManager() {
       <Text className={`text-sm ${theme.subTextColor}`}>Add one to get started</Text>
     </Animated.View>
   );
+  const renderHeader = () => (
+    <View className={`${theme.headerBgColor} px-6 pt-8 pb-4 mb-6 border-b ${theme.headerBorderColor}`}>
+      <View className="flex-row justify-between items-center">
+        <View>
+          <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Task Bundles</Text>
+          <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
+            Manage bundles of task templates
+          </Text>
+        </View>
+
+        <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
+          <Text className={`${theme.countTextColor} font-semibold`}>
+            {bundles.length}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View className={`flex-1 ${theme.bgColor}`}>
-      {/* Header */}
-      <View className={`${theme.headerBgColor} px-6 pt-16 pb-6 border-b ${theme.headerBorderColor}`}>
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Task Bundles</Text>
-            <Text className={`text-sm mt-1 ${theme.subTextColor}`}>
-              Manage bundles of task templates
-            </Text>
-          </View>
-
-          <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
-            <Text className={`${theme.countTextColor} font-semibold`}>
-              {bundles.length}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* List */}
-      {isLoading ? (
-        <FlatList
-          data={[1, 2, 3]}
-          renderItem={({ index }) => <ChildrenManagerSkeleton index={index} />}
-          keyExtractor={(i) => i.toString()}
-          contentContainerStyle={{ paddingTop: 16 }}
-        />
-      ) : (
-        <FlatList
-          data={bundles}
-          keyExtractor={(i) => i.id}
-          renderItem={renderBundleItem}
-          contentContainerStyle={{ paddingBottom: 90, paddingTop: 16 }}
-          ListEmptyComponent={ListEmptyComponent}
-        />
-      )}
+      <FlatList
+        data={isLoading && bundles.length === 0 ? [1, 2, 3] : bundles}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}-${index}` : (item as ChildTaskBundle).id)}
+        renderItem={({ item, index }) => {
+          if (isLoading && bundles.length === 0) return <ChildrenManagerSkeleton index={index} />;
+          return renderBundleItem({ item: item as ChildTaskBundle, index: index as number });
+        }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={() => (!isLoading ? ListEmptyComponent : null)}
+        contentContainerStyle={{ paddingBottom: 90, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
+      />
 
       {/* Add FAB */}
       <Pressable

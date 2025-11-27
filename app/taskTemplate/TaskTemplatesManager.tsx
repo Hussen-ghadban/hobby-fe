@@ -45,7 +45,7 @@ export default function TaskTemplatesManager() {
     name: "",
     description: "",
     category: "",
-    priority: 1,
+    priority: undefined,
     startDate: "",
     recurrenceType: "DAILY",
     recurrenceDays: [],
@@ -122,7 +122,7 @@ export default function TaskTemplatesManager() {
         name: form.name,
         description: form.description,
         category: form.category,
-        priority: form.priority,
+        priority: form.priority || 1,
         startDate: form.startDate,
         recurrenceType: form.recurrenceType,
       };
@@ -182,7 +182,7 @@ export default function TaskTemplatesManager() {
       name: "",
       description: "",
       category: "",
-      priority: 1,
+      priority: undefined,
       startDate: "",
       recurrenceType: "DAILY",
       recurrenceDays: [],
@@ -227,195 +227,178 @@ export default function TaskTemplatesManager() {
       .filter(Boolean)
       .join(", ");
   };
+  const renderHeader = () => (
+    <View className={`${theme.headerBgColor} px-6 pt-12 pb-4 mb-6 border-b ${theme.headerBorderColor}`}>
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1">
+          <Text className={`text-3xl font-bold ${theme.headerTextColor} mb-1`}>
+            Templates 
+          </Text>
+          <Text className={`text-sm ${theme.subTextColor}`}>
+            {templates.length} reusable task {templates.length === 1 ? 'template' : 'templates'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 
-  return (
-    <View className={`flex-1 ${theme.bgColor}`}>
-              <View className={`${theme.headerBgColor} px-6 pt-16 pb-8`}>
-                <View className="flex-row items-center justify-between mb-3">
-                  <View className="flex-1">
-                    <Text className={`text-3xl font-bold ${theme.headerTextColor} mb-1`}>
-                      Templates
-                    </Text>
-                    <Text className={`text-sm ${theme.subTextColor}`}>
-                      {templates.length} reusable task {templates.length === 1 ? 'template' : 'templates'}
-                    </Text>
-                  </View>
-                  <View className={`${isDark ? "bg-blue-500/10" : "bg-blue-500/5"} w-14 h-14 rounded-2xl items-center justify-center`}>
-                    <Text className="text-2xl">📋</Text>
-                  </View>
-                </View>
-              </View>
-      {/* Content */}
-      <View className="flex-1 px-6 pt-4">
-        {/* Loading State */}
-        {isLoading && templates.length === 0 && (
-  <FlatList
-    data={[1, 2, 3, 4, 5]}
-    keyExtractor={(i) => i.toString()}
-    renderItem={({ index }) => <TaskTemplateSkeleton index={index} />}
-    showsVerticalScrollIndicator={false}
-  />
-)}
+  const renderTemplateItem = ({ item }: { item: TaskTemplate }) => (
+    <View className="px-1 mb-4">
+      <View className={`${theme.cardBgColor} rounded-3xl overflow-hidden ${theme.cardBorderColor} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+        <View className={`h-1.5 ${
+          String(item.priority) === "HIGH" ? "bg-red-500" :
+          String(item.priority) === "MEDIUM" ? "bg-amber-500" : "bg-blue-500"
+        }`} />
 
-
-        {/* Empty State */}
-        {!isLoading && templates.length === 0 && (
-          <View className="flex-1 justify-center items-center px-8">
-            <View className={`w-20 h-20 ${theme.emptyIconBgColor} rounded-full items-center justify-center mb-4`}>
-              <Text className="text-4xl">📋</Text>
+        <View className="p-5">
+          <View className="flex-row items-start justify-between mb-4">
+            <View className="flex-1 mr-4">
+              <Text className={`text-xl font-bold ${theme.headerTextColor} mb-1.5`}>
+                {item.name}
+              </Text>
+              {item.description && (
+                <Text className={`text-sm ${theme.subTextColor} leading-5`}>
+                  {item.description}
+                </Text>
+              )}
             </View>
-            <Text className={`text-xl font-bold ${theme.headerTextColor} mb-2`}>
-              No Templates Yet
-            </Text>
-            <Text className={`text-center ${theme.subTextColor}`}>
-              Create your first task template to streamline recurring activities
-            </Text>
+
+            <View className={`${
+              String(item.priority) === "HIGH" 
+                ? isDark ? "bg-red-500/15" : "bg-red-50"
+                : String(item.priority) === "MEDIUM"
+                ? isDark ? "bg-amber-500/15" : "bg-amber-50"
+                : isDark ? "bg-blue-500/15" : "bg-blue-50"
+            } px-3 py-1.5 rounded-xl`}>
+                <Text className={`text-xs font-bold ${
+                String(item.priority) === "HIGH"
+                  ? isDark ? "text-red-400" : "text-red-600"
+                  : String(item.priority) === "MEDIUM"
+                  ? isDark ? "text-amber-400" : "text-amber-600"
+                  : isDark ? "text-blue-400" : "text-blue-600"
+              }`}>
+                {item.priority}
+              </Text>
+            </View>
           </View>
-        )}
 
-        {/* Templates List */}
-{templates.length > 0 && (
-          <FlatList
-            data={templates}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 90 }}
-            renderItem={({ item }) => (
-              <View className="px-1 mb-4">
-                <View className={`${theme.cardBgColor} rounded-3xl overflow-hidden ${theme.cardBorderColor} border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-                  {/* Priority Banner */}
-                  <View className={`h-1.5 ${
-                    String(item.priority) === "HIGH" ? "bg-red-500" :
-                    String(item.priority) === "MEDIUM" ? "bg-amber-500" : "bg-blue-500"
-                  }`} />
-                  
-                  <View className="p-5">
-                    {/* Header Section */}
-                    <View className="flex-row items-start justify-between mb-4">
-                      <View className="flex-1 mr-4">
-                        <Text className={`text-xl font-bold ${theme.headerTextColor} mb-1.5`}>
-                          {item.name}
-                        </Text>
-                        {item.description && (
-                          <Text className={`text-sm ${theme.subTextColor} leading-5`}>
-                            {item.description}
-                          </Text>
-                        )}
-                      </View>
-                      
-                      <View className={`${
-                        String(item.priority) === "HIGH" 
-                          ? isDark ? "bg-red-500/15" : "bg-red-50"
-                          : String(item.priority) === "MEDIUM"
-                          ? isDark ? "bg-amber-500/15" : "bg-amber-50"
-                          : isDark ? "bg-blue-500/15" : "bg-blue-50"
-                      } px-3 py-1.5 rounded-xl`}>
-                          <Text className={`text-xs font-bold ${
-                          String(item.priority) === "HIGH"
-                            ? isDark ? "text-red-400" : "text-red-600"
-                            : String(item.priority) === "MEDIUM"
-                            ? isDark ? "text-amber-400" : "text-amber-600"
-                            : isDark ? "text-blue-400" : "text-blue-600"
-                        }`}>
-                          {item.priority}
-                        </Text>
-                      </View>
-                    </View>
+          <View className={`h-px ${isDark ? "bg-gray-700" : "bg-gray-200"} mb-4`} />
 
-                    {/* Divider */}
-                    <View className={`h-px ${isDark ? "bg-gray-700" : "bg-gray-200"} mb-4`} />
-
-                    {/* Metadata Grid */}
-                    <View className="mb-4">
-                      <View className="flex-row flex-wrap gap-3">
-                        {item.category && (
-                          <View className="flex-row items-center">
-                            <View className={`${isDark ? "bg-purple-500/15" : "bg-purple-50"} w-8 h-8 rounded-lg items-center justify-center mr-2`}>
-                              <Text className="text-base">📁</Text>
-                            </View>
-                            <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
-                              {item.category}
-                            </Text>
-                          </View>
-                        )}
-                        
-                        <View className="flex-row items-center">
-                          <View className={`${isDark ? "bg-green-500/15" : "bg-green-50"} w-8 h-8 rounded-lg items-center justify-center mr-2`}>
-                            <Text className="text-base">🔄</Text>
-                          </View>
-                          <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
-                            {item.recurrenceType}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {item.recurrenceType === "CUSTOM_DAYS" && (item as any).recurrenceDays && (
-                        <View className={`${isDark ? "bg-indigo-500/10" : "bg-indigo-50"} rounded-xl p-3 mt-3`}>
-                          <Text className={`text-xs font-semibold ${isDark ? "text-indigo-400" : "text-indigo-700"} mb-1`}>
-                            CUSTOM SCHEDULE
-                          </Text>
-                          <Text className={`text-sm font-medium ${isDark ? "text-indigo-300" : "text-indigo-600"}`}>
-                            {getDaysDisplay((item as any).recurrenceDays)}
-                          </Text>
-                        </View>
-                      )}
-
-                      {item.startDate && (
-                        <View className={`${isDark ? "bg-gray-700/50" : "bg-gray-50"} rounded-xl p-3 mt-3 flex-row items-center`}>
-                          <Text className="text-base mr-2">📅</Text>
-                          <View>
-                            <Text className={`text-xs font-semibold ${theme.subTextColor} mb-0.5`}>
-                              START DATE
-                            </Text>
-                            <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
-                              {new Date(item.startDate).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Action Buttons */}
-                    <View className="flex-row gap-2">
-                      <Pressable 
-                        onPress={() => handleEdit(item)}
-                        className={`flex-1 ${isDark ? "bg-blue-500/15" : "bg-blue-50"} rounded-xl py-3 flex-row items-center justify-center`}
-                      >
-                        <Ionicons 
-                          name="create-outline" 
-                          size={18} 
-                          color={isDark ? "#60a5fa" : "#2563eb"} 
-                        />
-                        <Text className={`ml-2 font-semibold text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>
-                          Edit
-                        </Text>
-                      </Pressable>
-
-                      <Pressable 
-                        onPress={() => handleDelete(item.id)}
-                        className={`flex-1 ${isDark ? "bg-red-500/15" : "bg-red-50"} rounded-xl py-3 flex-row items-center justify-center`}
-                      >
-                        <Ionicons 
-                          name="trash-outline" 
-                          size={18} 
-                          color={isDark ? "#f87171" : "#dc2626"} 
-                        />
-                        <Text className={`ml-2 font-semibold text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
-                          Delete
-                        </Text>
-                      </Pressable>
-                    </View>
+          <View className="mb-4">
+            <View className="flex-row flex-wrap gap-3">
+              {item.category && (
+                <View className="flex-row items-center">
+                  <View className={`${isDark ? "bg-purple-500/15" : "bg-purple-50"} w-8 h-8 rounded-lg items-center justify-center mr-2`}>
+                    <Text className="text-base">📁</Text>
                   </View>
+                  <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
+                    {item.category}
+                  </Text>
+                </View>
+              )}
+              
+              <View className="flex-row items-center">
+                <View className={`${isDark ? "bg-green-500/15" : "bg-green-50"} w-8 h-8 rounded-lg items-center justify-center mr-2`}>
+                  <Text className="text-base">🔄</Text>
+                </View>
+                <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
+                  {item.recurrenceType}
+                </Text>
+              </View>
+            </View>
+
+            {item.recurrenceType === "CUSTOM_DAYS" && (item as any).recurrenceDays && (
+              <View className={`${isDark ? "bg-indigo-500/10" : "bg-indigo-50"} rounded-xl p-3 mt-3`}>
+                <Text className={`text-xs font-semibold ${isDark ? "text-indigo-400" : "text-indigo-700"} mb-1`}>
+                  CUSTOM SCHEDULE
+                </Text>
+                <Text className={`text-sm font-medium ${isDark ? "text-indigo-300" : "text-indigo-600"}`}>
+                  {getDaysDisplay((item as any).recurrenceDays)}
+                </Text>
+              </View>
+            )}
+
+            {item.startDate && (
+              <View className={`${isDark ? "bg-gray-700/50" : "bg-gray-50"} rounded-xl p-3 mt-3 flex-row items-center`}>
+                <Text className="text-base mr-2">📅</Text>
+                <View>
+                  <Text className={`text-xs font-semibold ${theme.subTextColor} mb-0.5`}>
+                    START DATE
+                  </Text>
+                  <Text className={`text-sm font-medium ${theme.headerTextColor}`}>
+                    {new Date(item.startDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Text>
                 </View>
               </View>
             )}
-          />
-        )}
+          </View>
+
+          <View className="flex-row gap-2">
+            <Pressable 
+              onPress={() => handleEdit(item)}
+              className={`flex-1 ${isDark ? "bg-blue-500/15" : "bg-blue-50"} rounded-xl py-3 flex-row items-center justify-center`}
+            >
+              <Ionicons 
+                name="create-outline" 
+                size={18} 
+                color={isDark ? "#60a5fa" : "#2563eb"} 
+              />
+              <Text className={`ml-2 font-semibold text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>
+                Edit
+              </Text>
+            </Pressable>
+
+            <Pressable 
+              onPress={() => handleDelete(item.id)}
+              className={`flex-1 ${isDark ? "bg-red-500/15" : "bg-red-50"} rounded-xl py-3 flex-row items-center justify-center`}
+            >
+              <Ionicons 
+                name="trash-outline" 
+                size={18} 
+                color={isDark ? "#f87171" : "#dc2626"} 
+              />
+              <Text className={`ml-2 font-semibold text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                Delete
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
+    </View>
+  );
+
+  const ListEmptyComponent = (
+    <View className="flex-1 justify-center items-center px-8">
+      <View className={`w-20 h-20 ${theme.emptyIconBgColor} rounded-full items-center justify-center mb-4`}>
+        <Text className="text-4xl">📋</Text>
+      </View>
+      <Text className={`text-xl font-bold ${theme.headerTextColor} mb-2`}>
+        No Templates Yet
+      </Text>
+      <Text className={`text-center ${theme.subTextColor}`}>
+        Create your first task template to streamline recurring activities
+      </Text>
+    </View>
+  );
+
+  return (
+    <View className={`flex-1 ${theme.bgColor}`}>
+      <FlatList
+        data={isLoading && templates.length === 0 ? [1,2,3,4,5] : templates}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}-${index}` : (item as TaskTemplate).id)}
+        renderItem={({ item, index }) => {
+          if (isLoading && templates.length === 0) return <TaskTemplateSkeleton index={index} />;
+          return renderTemplateItem({ item: item as TaskTemplate });
+        }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={() => (!isLoading ? ListEmptyComponent : null)}
+        contentContainerStyle={{ paddingBottom: 90 }}
+        showsVerticalScrollIndicator={false}
+      />
 
       {/* Floating Add Button */}
 <Pressable
@@ -521,9 +504,9 @@ export default function TaskTemplatesManager() {
                 placeholder="e.g., 1, 2, 3"
                 placeholderTextColor="#9ca3af"
                 className={`border ${theme.inputBorderColor} p-4 rounded-lg ${theme.inputBgColor} ${theme.inputTextColor}`}
-                value={form.priority?.toString()}
+                value={form.priority ? form.priority.toString() : ""}
                 onChangeText={(t) => {
-                  const num = parseInt(t) || 1;
+                  const num = t ? parseInt(t) : undefined;
                   setForm({ ...form, priority: num });
                 }}
                 keyboardType="numeric"

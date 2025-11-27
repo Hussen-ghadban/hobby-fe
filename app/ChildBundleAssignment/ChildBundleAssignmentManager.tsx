@@ -28,14 +28,6 @@ import { getAllChildrenService } from "@/services/child.services";
 import { addChildBundleAssignmentService, deleteChildBundleAssignmentService, getAllChildBundleAssignmentsService, updateChildBundleAssignmentService } from "@/services/childBundleAssignment.services";
 import { Child } from "@/types/child.types";
 
-/**
- * Component: ChildBundleAssignmentManager
- *
- * - Bundle dropdown (single select)
- * - Children multi-select (checkbox style)
- * - Add / Update (only childIds) / Delete
- */
-
 export default function ChildBundleAssignmentManager() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
@@ -43,11 +35,9 @@ export default function ChildBundleAssignmentManager() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const queryClient = useQueryClient();
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<any | null>(null);
 
-  // Form state: bundleId (string) and selected childIds (string[])
   const [form, setForm] = useState<AddChildBundleAssignmentFormData>({
     bundleId: "",
     childIds: [],
@@ -57,7 +47,6 @@ export default function ChildBundleAssignmentManager() {
   const [bundleDropdownOpen, setBundleDropdownOpen] = useState(false);
   const [childrenDropdownSearch, setChildrenDropdownSearch] = useState("");
 
-  // Fetch bundles for dropdown
   const {
     data: bundlesResponse,
     isLoading: bundlesLoading,
@@ -70,7 +59,6 @@ export default function ChildBundleAssignmentManager() {
     enabled: !!token,
   });
 
-  // Fetch children for multi-select
   const {
     data: childrenResponse,
     isLoading: childrenLoading,
@@ -83,7 +71,6 @@ export default function ChildBundleAssignmentManager() {
     enabled: !!token,
   });
 
-  // Fetch assignments (list)
   const {
     data: assignments = [],
     isLoading: assignmentsLoading,
@@ -96,7 +83,6 @@ export default function ChildBundleAssignmentManager() {
     enabled: !!token,
   });
 
-  // Mutations
   const addMutation = useMutation({
     mutationFn: (data: AddChildBundleAssignmentFormData) =>
       addChildBundleAssignmentService(data, token!),
@@ -194,6 +180,10 @@ export default function ChildBundleAssignmentManager() {
   const bundles = bundlesResponse ?? [];
   const children = childrenResponse ?? [];
 
+  const selectedBundle = useMemo(() => {
+    return bundles.find((b: any) => b.id === form.bundleId);
+  }, [bundles, form.bundleId]);
+
   const filteredChildren = useMemo(() => {
     if (!children || !children.length) return [];
     if (!childrenDropdownSearch.trim()) return children;
@@ -203,6 +193,7 @@ export default function ChildBundleAssignmentManager() {
 
   const renderAssignmentItem = ({ item, index }: { item: any; index: number }) => {
     const assignedChildren: Child[] = item.children ?? [];
+    const bundleName = item.bundle?.name || "Unknown Bundle";
 
     return (
       <Animated.View
@@ -219,7 +210,7 @@ export default function ChildBundleAssignmentManager() {
         <View className="flex-row items-center mb-4">
           <View className="flex-1">
             <Text className={`text-xl font-semibold ${theme.cardNameColor}`}>
-              Bundle
+              {bundleName}
             </Text>
             <Text className={`text-sm ${theme.subTextColor} mt-1`}>
               {assignedChildren.length} child(ren)
@@ -260,6 +251,21 @@ export default function ChildBundleAssignmentManager() {
     );
   };
 
+  const ListHeaderComponent = (
+    <View className={`${theme.headerBgColor} px-6 pt-14 pb-4 mb-6 border-b ${theme.headerBorderColor}`}>
+      <View className="flex-row justify-between items-center">
+        <View>
+          <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Bundle Assignments</Text>
+          <Text className={`text-sm mt-1 ${theme.subTextColor}`}>Assign bundles to children</Text>
+        </View>
+
+        <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
+          <Text className={`${theme.countTextColor} font-semibold`}>{assignments?.length ?? 0}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   const ListEmptyComponent = (
     <Animated.View entering={FadeIn.delay(300)} className="justify-center items-center mt-16 px-6">
       <Text className="text-6xl mb-3">🧩</Text>
@@ -270,39 +276,25 @@ export default function ChildBundleAssignmentManager() {
 
   return (
     <View className={`flex-1 ${theme.bgColor}`}>
-      {/* Header */}
-      <View className={`${theme.headerBgColor} px-6 pt-16 pb-6 border-b ${theme.headerBorderColor}`}>
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className={`text-3xl font-bold ${theme.headerTextColor}`}>Bundle Assignments</Text>
-            <Text className={`text-sm mt-1 ${theme.subTextColor}`}>Assign bundles to children</Text>
-          </View>
-
-          <View className={`${theme.countBgColor} px-4 py-2 rounded-xl`}>
-            <Text className={`${theme.countTextColor} font-semibold`}>{assignments?.length ?? 0}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* List */}
       {assignmentsLoading || bundlesLoading || childrenLoading ? (
         <FlatList
           data={[1, 2, 3]}
           renderItem={({ index }) => <ChildrenManagerSkeleton index={index} />}
           keyExtractor={(i) => i.toString()}
-          contentContainerStyle={{ paddingTop: 16 }}
+          ListHeaderComponent={ListHeaderComponent}
+          contentContainerStyle={{ paddingBottom: 90 }}
         />
       ) : (
         <FlatList
           data={assignments}
           keyExtractor={(i: any) => i.id}
           renderItem={renderAssignmentItem}
-          contentContainerStyle={{ paddingBottom: 90, paddingTop: 16 }}
+          ListHeaderComponent={ListHeaderComponent}
+          contentContainerStyle={{ paddingBottom: 90 }}
           ListEmptyComponent={ListEmptyComponent}
         />
       )}
 
-      {/* Floating Add Button */}
       <Pressable
         onPress={openAddModal}
         disabled={isMutating}
@@ -317,7 +309,6 @@ export default function ChildBundleAssignmentManager() {
         <Ionicons name="add" size={36} color={theme.fabTextColor} />
       </Pressable>
 
-      {/* Modal */}
       <Modal
         isVisible={modalVisible}
         onBackdropPress={closeModal}
@@ -343,6 +334,71 @@ export default function ChildBundleAssignmentManager() {
             </View>
 
             <ScrollView className="px-6" showsVerticalScrollIndicator={false}>
+              {/* Bundle Dropdown - Only shown when adding */}
+              {!editingAssignment && (
+                <>
+                  <Text className={`text-sm font-medium ${theme.labelColor} mb-2`}>Select Bundle</Text>
+                  <Pressable
+                    onPress={() => setBundleDropdownOpen(!bundleDropdownOpen)}
+                    className={`px-4 py-3 rounded-2xl border ${theme.inputBorderColor} ${theme.inputBgColor} flex-row items-center justify-between`}
+                  >
+                    <Text className={selectedBundle ? theme.inputTextColor : "text-gray-400"}>
+                      {selectedBundle ? selectedBundle.name : "Choose a bundle..."}
+                    </Text>
+                    <Ionicons 
+                      name={bundleDropdownOpen ? "chevron-up" : "chevron-down"} 
+                      size={20} 
+                      color={isDark ? "#9ca3af" : "#6b7280"} 
+                    />
+                  </Pressable>
+
+                  {bundleDropdownOpen && (
+                    <View 
+                      className={`mt-2 rounded-xl border ${theme.inputBorderColor} ${theme.inputBgColor}`}
+                      style={{ maxHeight: 200 }}
+                    >
+                      <ScrollView>
+                        {bundles.length === 0 ? (
+                          <Text className={`text-sm ${theme.subTextColor} p-3`}>No bundles available</Text>
+                        ) : (
+                          bundles.map((bundle: any) => (
+                            <Pressable
+                              key={bundle.id}
+                              onPress={() => {
+                                setForm({ ...form, bundleId: bundle.id });
+                                setBundleDropdownOpen(false);
+                              }}
+                              className="px-4 py-3 flex-row items-center justify-between"
+                            >
+                              <Text className={`${theme.cardNameColor}`}>{bundle.name}</Text>
+                              {form.bundleId === bundle.id && (
+                                <Ionicons name="checkmark" size={20} color={theme.accentColor} />
+                              )}
+                            </Pressable>
+                          ))
+                        )}
+                      </ScrollView>
+                    </View>
+                  )}
+                </>
+              )}
+
+              {/* Show selected bundle when editing (disabled/read-only) */}
+              {editingAssignment && selectedBundle && (
+                <>
+                  <Text className={`text-sm font-medium ${theme.labelColor} mb-2`}>Bundle (Cannot be changed)</Text>
+                  <View 
+                    className={`px-4 py-3 rounded-2xl border ${theme.inputBorderColor}`}
+                    style={{ 
+                      backgroundColor: isDark ? 'rgba(100, 116, 139, 0.2)' : '#f3f4f6',
+                      opacity: 0.7 
+                    }}
+                  >
+                    <Text className={theme.subTextColor}>{selectedBundle.name}</Text>
+                  </View>
+                </>
+              )}
+
               {/* Children multi-select */}
               <Text className={`text-sm font-medium mt-5 mb-2 ${theme.labelColor}`}>Select Children</Text>
 
@@ -399,7 +455,6 @@ export default function ChildBundleAssignmentManager() {
                 </ScrollView>
               </View>
 
-              {/* Save */}
               <Pressable
                 onPress={handleSave}
                 disabled={isMutating}
@@ -414,7 +469,6 @@ export default function ChildBundleAssignmentManager() {
                 )}
               </Pressable>
 
-              {/* Cancel */}
               <Pressable
                 onPress={closeModal}
                 disabled={isMutating}
